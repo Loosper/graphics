@@ -27,12 +27,11 @@ void Scene::keyPressEvent(QKeyEvent *event) {
     } else if (event->key() == Qt::Key_Right) {
         angle += 2;
     } else if (event->key() == Qt::Key_Up) {
-        // TODO: does this even make sense
-        camera[0] += cos(angle * PI / 100);
-        camera[1] += sin(angle * PI / 100);
+        camera[0] += cos(angle * PI / 180);
+        camera[1] += sin(angle * PI / 180);
     } else if (event->key() == Qt::Key_Down) {
-        camera[0] -= cos(angle * PI / 100);
-        camera[1] -= sin(angle * PI / 100);
+        camera[0] -= cos(angle * PI / 180);
+        camera[1] -= sin(angle * PI / 180);
     }
 
     QGLWidget::keyPressEvent(event);
@@ -40,10 +39,7 @@ void Scene::keyPressEvent(QKeyEvent *event) {
 
 
 void Scene::initializeGL() {
-    glClearColor(0, 0, 0, 0);
-    // glMatrixMode(GL_PROJECTION);
-    // glLoadIdentity();
-	// glOrtho(-10, 10, -10, 10, -10, 10);
+    glClearColor(0.1, 0.1, 0.1, 0);
 
     // GLfloat light_pos[] = {2., -2.,-2., 1.};
     // glEnable(GL_LIGHTING); // enable lighting in general
@@ -54,22 +50,23 @@ void Scene::initializeGL() {
 }
 
 void Scene::resizeGL(int w, int h) {
-    // all this to preserve the screen's aspect ratio and to not distort
-    GLfloat ratio = (float)h / w;
+    GLfloat ratio = (GLfloat)w / h;
 
+    // doesn't relate to the projection matrix
+    glViewport(0, 0, w, h);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-
-    // TODO: I'm pretty sure I'm putting this into the wrong matrix.
-    // In lectures it's before the projection matrix is selected
-    glViewport(0, 0, w, h);
-	glOrtho(-10, 10, -10 * ratio, 10 * ratio, -10, 10);
+    // glOrtho(-10, 10, -10, 10, -10, 10);
+    gluPerspective(60, ratio, 3, 30);
 }
 
 void Scene::paintGL() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glPushMatrix();
+    glTranslatef(10, 0, 0);
     this->icosahedron();
+    glPopMatrix();
 
     glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -79,6 +76,7 @@ void Scene::paintGL() {
         0, 1, 0
     );
 
+    // glScalef(0.5, 0.5, 0.5);
 	glFlush();
 }
 

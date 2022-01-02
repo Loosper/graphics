@@ -1,12 +1,7 @@
 #include <QGLWidget>
 #include <QPoint>
+#include <QVector3D>
 
-
-struct point {
-    GLfloat x;
-    GLfloat y;
-    GLfloat z;
-};
 
 class Scene: public QGLWidget {
     public:
@@ -17,15 +12,15 @@ class Scene: public QGLWidget {
         void paintGL();
         void keyPressEvent(QKeyEvent *event);
         void mouseMoveEvent(QMouseEvent *event);
-        void enterEvent(QEvent *event);
+        void mousePressEvent(QMouseEvent *event);
 
 	private:
         // left/right
-        GLfloat yaw_angle = 90;
+        GLfloat yaw_angle = -90;
         // up/down
         GLfloat pitch_angle = 0;
         QCursor cursor = QCursor(Qt::BlankCursor);
-        point camera_pos = {0, 3, 0};
+        QVector3D camera_pos = {0, 3, 0};
 
 		void icosahedron();
 };

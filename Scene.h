@@ -23,4 +23,5 @@ class Scene: public QGLWidget {
         QVector3D camera_pos = {0, 3, 0};
 
 		void icosahedron();
+		void cube();
 };

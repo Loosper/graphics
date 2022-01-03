@@ -96,10 +96,10 @@ typedef struct materialStruct {
 } materialStruct;
 
 static materialStruct yellowPlastic = {
-    {0.0f,0.0f,0.0f,1.0f },
+    {0.5f,0.5f,0.5f,1.0f },
     {0.5f,0.5f,0.0f,1.0f },
-    {0.60f,0.60f,0.50f,1.0f },
-    32.0f
+    {0.0f,0.0f,0.0f,1.0f },
+    3.0f
 };
 
 void Scene::initializeGL() {
@@ -149,6 +149,8 @@ void Scene::paintGL() {
     glPushMatrix();
     glTranslatef(0, 5, -5);
     this->icosahedron();
+    glTranslatef(3, 0, 0);
+    this->cube();
     glPopMatrix();
 
     glColor3f(1, 1, 1);
@@ -228,4 +230,35 @@ void Scene::icosahedron() {
     draw_triangle(l3_lb, l3_lf, l5_l);
     draw_triangle(l3_rb, l3_rf, l1_r);
     draw_triangle(l3_rf, l3_rb, l5_r);
+}
+
+
+void draw_quad(QVector3D v1, QVector3D v2, QVector3D v3, QVector3D v4) {
+    QVector3D normal = QVector3D::normal(v1, v2, v3);
+	glBegin(GL_QUADS);
+        glNormal3f(normal.x(), normal.y(), normal.z());
+        glVertex3f(v1.x(), v1.y(), v1.z());
+        glVertex3f(v2.x(), v2.y(), v2.z());
+        glVertex3f(v3.x(), v3.y(), v3.z());
+        glVertex3f(v4.x(), v4.y(), v4.z());
+    glEnd();
+
+}
+
+void Scene::cube() {
+    QVector3D ftl(-0.5, 0.5, 0.5), ftr(0.5, 0.5, 0.5), fbl(-0.5, -0.5, 0.5), fbr(0.5, -0.5, 0.5),
+        btl(-0.5, 0.5, -0.5), btr(0.5, 0.5, -0.5), bbl(-0.5, -0.5, -0.5), bbr(0.5, -0.5, -0.5);
+
+    // front
+    draw_quad(ftl, fbl, fbr, ftr);
+    // back
+    draw_quad(btl, bbl, bbr, btr);
+    // right
+    draw_quad(ftr, fbr, bbr, btr);
+    // left
+    draw_quad(ftl, fbl, bbl, btl);
+    // top
+    draw_quad(ftl, ftr, btr, btl);
+    // bot
+    draw_quad(fbr, fbl, bbl, bbr);
 }

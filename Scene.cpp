@@ -4,12 +4,15 @@
 #include <iostream>
 #include <algorithm>
 
+#include <assert.h>
+
 #include <GL/glu.h>
 #include <Qt>
 #include <QKeyEvent>
 #include <QAction>
 #include <QTimer>
 #include <QApplication>
+#include <QImage>
 
 #include <QDebug>
 
@@ -23,6 +26,10 @@
 #define X_OFF (cos(RAD(yaw_angle)))
 #define Y_OFF (                  0)
 #define Z_OFF (sin(RAD(yaw_angle)))
+
+using namespace std;
+
+GLuint markus_tex;
 
 void draw_triangle(QVector3D v1, QVector3D v2, QVector3D v3) {
     QVector3D normal = QVector3D::normal(v1, v2, v3);
@@ -97,13 +104,13 @@ typedef struct materialStruct {
 
 static materialStruct yellowPlastic = {
     {0.5f,0.5f,0.5f,1.0f },
-    {0.5f,0.5f,0.0f,1.0f },
+    {0.5f,0.5f,0.5f,1.0f },
     {0.0f,0.0f,0.0f,1.0f },
     3.0f
 };
 
 void Scene::initializeGL() {
-    glClearColor(0.1, 0.1, 0.1, 0);
+    glClearColor(0.3, 0.3, 0.3, 0);
 
     glEnable(GL_NORMALIZE);
     glEnable(GL_DEPTH_TEST);
@@ -120,6 +127,26 @@ void Scene::initializeGL() {
     glMaterialfv(GL_FRONT, GL_SPECULAR,   yellowPlastic.specular);
     glMaterialf(GL_FRONT, GL_SHININESS,   yellowPlastic.shininess);
 
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+    load_texture();
+}
+
+
+void Scene::load_texture() {
+    QImage image("markus.ppm", "ppm");
+
+    glGenTextures(1, &markus_tex);
+    glBindTexture(GL_TEXTURE_2D, markus_tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(
+        GL_TEXTURE_2D, 0, GL_RGBA, image.width(), image.height(), 0, GL_RGBA,
+        GL_UNSIGNED_BYTE, QGLWidget::convertToGLFormat(image).bits()
+    );
 }
 
 void Scene::resizeGL(int w, int h) {
@@ -150,7 +177,12 @@ void Scene::paintGL() {
     glTranslatef(0, 5, -5);
     this->icosahedron();
     glTranslatef(3, 0, 0);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, markus_tex);
+    glColor3f(1, 1, 1);
     this->cube();
+    glDisable(GL_TEXTURE_2D);
+
     glPopMatrix();
 
     glColor3f(1, 1, 1);
@@ -245,13 +277,13 @@ void Scene::cube() {
     };
 
     vector<array<GLfloat, 2>> textues = {
-        {-1, 1},
+        {0, 1},
         {1, 1},
-        {-1, -1},
-        {1, -1},
-        {-1, 2},
+        {0, 0},
+        {1, 0},
+        {0, 2},
         {1, 2},
-        {-1, -2},
+        {0, -2},
         {1, -2},
     };
 

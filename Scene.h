@@ -24,4 +24,6 @@ class Scene: public QGLWidget {
 
 		void icosahedron();
 		void cube();
+
+        void load_texture();
 };

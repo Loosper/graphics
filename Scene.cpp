@@ -232,33 +232,51 @@ void Scene::icosahedron() {
     draw_triangle(l3_rf, l3_rb, l5_r);
 }
 
-
-void draw_quad(QVector3D v1, QVector3D v2, QVector3D v3, QVector3D v4) {
-    QVector3D normal = QVector3D::normal(v1, v2, v3);
-	glBegin(GL_QUADS);
-        glNormal3f(normal.x(), normal.y(), normal.z());
-        glVertex3f(v1.x(), v1.y(), v1.z());
-        glVertex3f(v2.x(), v2.y(), v2.z());
-        glVertex3f(v3.x(), v3.y(), v3.z());
-        glVertex3f(v4.x(), v4.y(), v4.z());
-    glEnd();
-
-}
-
 void Scene::cube() {
-    QVector3D ftl(-0.5, 0.5, 0.5), ftr(0.5, 0.5, 0.5), fbl(-0.5, -0.5, 0.5), fbr(0.5, -0.5, 0.5),
-        btl(-0.5, 0.5, -0.5), btr(0.5, 0.5, -0.5), bbl(-0.5, -0.5, -0.5), bbr(0.5, -0.5, -0.5);
+    vector<QVector3D> vertices = {
+        {-0.5, 0.5, 0.5},
+        {0.5, 0.5, 0.5},
+        {-0.5, -0.5, 0.5},
+        {0.5, -0.5, 0.5},
+        {-0.5, 0.5, -0.5},
+        {0.5, 0.5, -0.5},
+        {-0.5, -0.5, -0.5},
+        {0.5, -0.5, -0.5},
+    };
 
-    // front
-    draw_quad(ftl, fbl, fbr, ftr);
-    // back
-    draw_quad(btl, bbl, bbr, btr);
-    // right
-    draw_quad(ftr, fbr, bbr, btr);
-    // left
-    draw_quad(ftl, fbl, bbl, btl);
-    // top
-    draw_quad(ftl, ftr, btr, btl);
-    // bot
-    draw_quad(fbr, fbl, bbl, bbr);
+    vector<array<GLfloat, 2>> textues = {
+        {-1, 1},
+        {1, 1},
+        {-1, -1},
+        {1, -1},
+        {-1, 2},
+        {1, 2},
+        {-1, -2},
+        {1, -2},
+    };
+
+    vector<array<GLfloat, 4>> faces = {
+        {0, 2, 3, 1},
+        {4, 6, 7, 5},
+        {1, 3, 7, 5},
+        {0, 2, 6, 4},
+        {0, 1, 5, 4},
+        {3, 2, 6, 7}
+    };
+
+    for (array<GLfloat, 4> face: faces) {
+        QVector3D normal = QVector3D::normal(
+            vertices[face[0]],
+            vertices[face[1]],
+            vertices[face[2]]
+        );
+
+        glBegin(GL_POLYGON);
+            glNormal3f(normal.x(), normal.y(), normal.z());
+            for (int vertex: face) {
+                glTexCoord2f(textues[vertex][0], textues[vertex][1]);
+                glVertex3f(vertices[vertex].x(), vertices[vertex].y(), vertices[vertex].z());
+            }
+        glEnd();
+    }
 }

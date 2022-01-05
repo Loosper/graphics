@@ -4,6 +4,9 @@
 
 #include <GL/glu.h>
 
+#include "Drawer.h"
+#include "Rocket.h"
+
 
 // no emissive
 struct material {
@@ -13,9 +16,10 @@ struct material {
     GLfloat shininess;
 };
 
-class Scene: public QGLWidget {
+class Scene: public QGLWidget, public Drawer {
     public:
         Scene();
+        void draw_geometry();
     protected:
         void initializeGL();
         void resizeGL(int w, int h);
@@ -31,16 +35,10 @@ class Scene: public QGLWidget {
         GLfloat pitch_angle = 0;
         QCursor cursor = QCursor(Qt::BlankCursor);
         QVector3D camera_pos = {0, 0.3, 2};
-        GLUquadricObj *quad;
+        Rocket rocket = Rocket();
 
 		void icosahedron();
 		void cube();
-		void sphere();
-		void ring(GLfloat slope, GLfloat radius = 1);
-		void disk();
-
-        void rocket();
-        void top_cone();
 
         void load_texture(const char *file, GLuint *tex);
         void set_material(struct material &material);

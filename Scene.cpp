@@ -40,18 +40,12 @@ GLuint markus_tex;
 GLuint mark_tex;
 GLuint earth_tex;
 
-Scene::Scene(): QGLWidget() {
+Scene::Scene(): QGLWidget(), Drawer() {
     // force update at ~60 fps
     // so I don't have to manually repaint whenever i change shit
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &Scene::updateGL);
     timer->start(17);
-
-    quad = gluNewQuadric();
-    gluQuadricDrawStyle(quad, GLU_FILL);
-    gluQuadricOrientation(quad, GLU_OUTSIDE);
-    gluQuadricNormals(quad, GLU_SMOOTH);
-    gluQuadricTexture(quad, GL_TRUE);
 }
 
 void Scene::keyPressEvent(QKeyEvent *event) {
@@ -166,39 +160,7 @@ void draw_triangle(QVector3D v1, QVector3D v2, QVector3D v3) {
     glEnd();
 }
 
-
-void Scene::sphere() {
-    glPushMatrix();
-        glRotatef(-90, 1, 0, 0);
-        gluSphere(quad, 1, 100, 100);
-    glPopMatrix();
-}
-
-void Scene::ring(GLfloat slope, GLfloat radius) {
-    glPushMatrix();
-        glRotatef(-90, 1, 0, 0);
-        gluCylinder(quad, radius, slope, 1, 100, 100);
-    glPopMatrix();
-}
-
-void Scene::disk() {
-    glPushMatrix();
-        glRotatef(-90, 1, 0, 0);
-        gluDisk(quad, 0, 1, 100, 1);
-    glPopMatrix();
-}
-
-void Scene::paintGL() {
-    // TODO: this for mulitaxis rotation. IDK what tf it does
-    // QQuaternion rot = QQuaternion::fromAxisAndAngle(0, 0, 1, yaw_angle) * QQuaternion::fromAxisAndAngle(0, 1, 0, pitch_angle);
-    // QVector3D look_at = rot.rotatedVector(QVector3D(0, 1, 0));
-    // QVector3D look_at(0, 0, 1);
-    // up_v = QVector3D::crossProduct(look_at, up_v);
-
-    QVector3D look_at(X_OFF, Y_OFF, Z_OFF);
-    QVector3D up_v(0, 1, 0);
-    look_at += camera_pos;
-
+void Scene::draw_geometry() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     set_material(smooth_material);
     glBegin(GL_LINES);
@@ -233,47 +195,21 @@ void Scene::paintGL() {
 
 
     // draw_triangle(QVector3D(-10, 0, -10), QVector3D(0, 0, 10), QVector3D(10, 0, -10));
+}
 
-    glTranslatef(0, -5.5, 0);
+void Scene::paintGL() {
+    // TODO: this for mulitaxis rotation. IDK what tf it does
+    // QQuaternion rot = QQuaternion::fromAxisAndAngle(0, 0, 1, yaw_angle) * QQuaternion::fromAxisAndAngle(0, 1, 0, pitch_angle);
+    // QVector3D look_at = rot.rotatedVector(QVector3D(0, 1, 0));
+    // QVector3D look_at(0, 0, 1);
+    // up_v = QVector3D::crossProduct(look_at, up_v);
 
-    glPushMatrix();
-        glTranslatef(-2, 0, 0);
-        for (int i = 0; i < 3; i++) {
-            glPushMatrix();
-                glRotatef(180, 1, 0, 0);
-                disk();
-            glPopMatrix();
-            ring(0.9);
-            glPushMatrix();
-                glTranslatef(0, 1, 0);
-                glScalef(0.9, 10, 0.9);
-                ring(1);
-            glPopMatrix();
-            glPushMatrix();
-                glTranslatef(0, 11, 0);
-                glScalef(0.9, 1, 0.9);
-                ring(0.7);
-                glTranslatef(0, 1, 0);
-                glScalef(0.7, 0.7, 0.7);
-                sphere();
-            glPopMatrix();
-            glTranslatef(2, 0, 0);
-        }
-    glPopMatrix();
-    glPushMatrix();
-        glTranslatef(0, 11, 0);
-        glPushMatrix();
-            glScalef(0.9, 5, 0.9);
-            ring(1);
-        glPopMatrix();
-        glTranslatef(0, 5, 0);
-        ring(1.1, 0.9);
-        glTranslatef(0, 1, 0);
-        glPushMatrix();
-            glScalef(1.1, 2, 1.1);
-            ring(1);
-        glPopMatrix();
-    glPopMatrix();
+    QVector3D look_at(X_OFF, Y_OFF, Z_OFF);
+    QVector3D up_v(0, 1, 0);
+    look_at += camera_pos;
+
+    draw_geometry();
+    rocket.draw_geometry();
 
     glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();

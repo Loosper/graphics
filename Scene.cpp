@@ -109,8 +109,8 @@ void Scene::initializeGL() {
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
     load_texture("markus.ppm", &markus_tex);
-    load_texture("Marc_Dekamps.ppm", &mark_tex);
-    load_texture("Mercator-projection.ppm", &earth_tex);
+    load_texture("mark.ppm", &mark_tex);
+    load_texture("earth.ppm", &earth_tex);
 
 }
 

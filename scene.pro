@@ -7,4 +7,4 @@ CONFIG += c++11
 LIBS += -lGLU
 
 SOURCES += main.cpp Scene.cpp Drawer.cpp Rocket.cpp
-HEADERS += Scene.h Drawer.h Rocket.h
+HEADERS += Scene.h Drawer.h Rocket.h Material.h

@@ -1,5 +1,4 @@
-#include <GL/glu.h>
-
+#include <cstddef>
 #include "Drawer.h"
 
 
@@ -8,8 +7,11 @@ class Rocket: public Drawer {
         Rocket(): Drawer() {}
 
         void draw_geometry();
+        void gl_init();
     private:
         void nose_cone();
-        void booster_bot(int height);
+        void pipe();
+        void engine();
+        void booster_bot(int height, GLuint *tex = NULL);
         void booster();
 };

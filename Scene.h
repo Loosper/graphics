@@ -8,14 +8,6 @@
 #include "Rocket.h"
 
 
-// no emissive
-struct material {
-    GLfloat ambient[4];
-    GLfloat diffuse[4];
-    GLfloat specular[4];
-    GLfloat shininess;
-};
-
 class Scene: public QGLWidget, public Drawer {
     public:
         Scene();
@@ -28,6 +20,8 @@ class Scene: public QGLWidget, public Drawer {
         void mouseMoveEvent(QMouseEvent *event);
         void mousePressEvent(QMouseEvent *event);
 
+        void gl_init() {}
+
 	private:
         // left/right
         GLfloat yaw_angle = -90;
@@ -38,8 +32,4 @@ class Scene: public QGLWidget, public Drawer {
         Rocket rocket = Rocket();
 
 		void icosahedron();
-		void cube();
-
-        void load_texture(const char *file, GLuint *tex);
-        void set_material(struct material &material);
 };

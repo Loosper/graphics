@@ -9,7 +9,6 @@
 #include <QAction>
 #include <QTimer>
 #include <QApplication>
-#include <QImage>
 
 #include <QDebug>
 
@@ -24,8 +23,6 @@
 #define Y_OFF (                  0)
 #define Z_OFF (sin(RAD(yaw_angle)))
 
-using namespace std;
-
 
 static struct material smooth_material = {
     {0.5, 0.5, 0.5, 1.0},
@@ -35,7 +32,6 @@ static struct material smooth_material = {
 };
 
 GLfloat light_pos[] = {10, 3, 50, 1};
-
 GLuint markus_tex;
 GLuint mark_tex;
 GLuint earth_tex;
@@ -96,45 +92,20 @@ void Scene::initializeGL() {
 
     glEnable(GL_NORMALIZE);
     glEnable(GL_DEPTH_TEST);
-    // VERY useful for debug
     glEnable(GL_CULL_FACE);
 
     glEnable(GL_LIGHTING);
     glShadeModel(GL_SMOOTH);
-
     glEnable(GL_LIGHT0);
-    glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-    load_texture("markus.ppm", &markus_tex);
-    load_texture("mark.ppm", &mark_tex);
-    load_texture("earth.ppm", &earth_tex);
+    load_texture("markus.ppm", markus_tex);
+    load_texture("mark.ppm", mark_tex);
+    load_texture("earth.ppm", earth_tex);
 
-}
-
-
-void Scene::load_texture(const char *file, GLuint *tex) {
-    QImage image(file, "ppm");
-
-    glGenTextures(1, tex);
-    glBindTexture(GL_TEXTURE_2D, *tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(
-        GL_TEXTURE_2D, 0, GL_RGBA, image.width(), image.height(), 0, GL_RGBA,
-        GL_UNSIGNED_BYTE, QGLWidget::convertToGLFormat(image).bits()
-    );
-}
-
-void Scene::set_material(struct material &material) {
-    glMaterialfv(GL_FRONT, GL_AMBIENT,  material.ambient);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE,  material.diffuse);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, material.specular);
-    glMaterialf(GL_FRONT, GL_SHININESS, material.shininess);
+    rocket.gl_init();
 }
 
 void Scene::resizeGL(int w, int h) {
@@ -176,23 +147,18 @@ void Scene::draw_geometry() {
     glEnd();
     glColor3f(1, 1, 1);
 
-    // glColor3f(1, 1, 1);
+    rocket.draw_geometry();
+    // GLfloat i = 0;
+    // glMatrixMode(GL_TEXTURE);
     // glPushMatrix();
-    //     glTranslatef(0, 5, -5);
-    //     this->icosahedron();
-    //     glTranslatef(3, 0, 0);
-    //     glEnable(GL_TEXTURE_2D);
-    //     glBindTexture(GL_TEXTURE_2D, markus_tex);
-    //     glColor3f(1, 1, 1);
-    //     this->cube();
-    //     glTranslatef(3, 0, 0);
-    //     glBindTexture(GL_TEXTURE_2D, earth_tex);
-    //     sphere();
-    //     glTranslatef(3, 0, 0);
-    //     cylinder();
-    //     glDisable(GL_TEXTURE_2D);
-    // glPopMatrix();
+    // glTranslatef(10, 0, 0);
+    // glScalef(2, 1, 1);
+    // glMatrixMode(GL_MODELVIEW);
 
+
+    // glMatrixMode(GL_TEXTURE);
+    // glPopMatrix();
+    // glMatrixMode(GL_MODELVIEW);
 
     // draw_triangle(QVector3D(-10, 0, -10), QVector3D(0, 0, 10), QVector3D(10, 0, -10));
 }
@@ -208,11 +174,8 @@ void Scene::paintGL() {
     QVector3D up_v(0, 1, 0);
     look_at += camera_pos;
 
-    draw_geometry();
-    rocket.draw_geometry();
-
     glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+    glLoadIdentity();
 
     // why does this not work?
     // glRotatef(yaw_angle, 0, 1, 0);
@@ -224,7 +187,13 @@ void Scene::paintGL() {
         up_v.x(), up_v.y(), up_v.z()
     );
 
-    glScalef(0.5, 0.5, 0.5);
+    glPushMatrix();
+        glTranslatef(0, -8, -15);
+        draw_geometry();
+    glPopMatrix();
+
+    glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
+
 	glFlush();
 }
 
@@ -287,51 +256,3 @@ void Scene::icosahedron() {
     draw_triangle(l3_rf, l3_rb, l5_r);
 }
 
-void Scene::cube() {
-    vector<QVector3D> vertices = {
-        {-0.5, 0.5, 0.5},
-        {0.5, 0.5, 0.5},
-        {-0.5, -0.5, 0.5},
-        {0.5, -0.5, 0.5},
-        {-0.5, 0.5, -0.5},
-        {0.5, 0.5, -0.5},
-        {-0.5, -0.5, -0.5},
-        {0.5, -0.5, -0.5},
-    };
-
-    vector<array<GLfloat, 2>> textues = {
-        {0, 1},
-        {1, 1},
-        {0, 0},
-        {1, 0},
-        {0, 2},
-        {1, 2},
-        {0, -2},
-        {1, -2},
-    };
-
-    vector<array<GLfloat, 4>> faces = {
-        {0, 2, 3, 1},
-        {4, 5, 7, 6},
-        {1, 3, 7, 5},
-        {0, 4, 6, 2},
-        {0, 1, 5, 4},
-        {3, 2, 6, 7}
-    };
-
-    for (array<GLfloat, 4> face: faces) {
-        QVector3D normal = QVector3D::normal(
-            vertices[face[0]],
-            vertices[face[1]],
-            vertices[face[2]]
-        );
-
-        glBegin(GL_POLYGON);
-            glNormal3f(normal.x(), normal.y(), normal.z());
-            for (int vertex: face) {
-                glTexCoord2f(textues[vertex][0], textues[vertex][1]);
-                glVertex3f(vertices[vertex].x(), vertices[vertex].y(), vertices[vertex].z());
-            }
-        glEnd();
-    }
-}

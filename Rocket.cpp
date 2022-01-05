@@ -1,5 +1,18 @@
 #include "Rocket.h"
 
+
+GLuint bosa_tex;
+static struct material white_glossy_paint = {
+    {0.7, 0.7, 0.7, 1.0},
+    {0.3, 0.3, 0.3, 1.0},
+    {0.4, 0.4, 0.4, 1.0},
+    1.5
+};
+
+void Rocket::gl_init() {
+    load_texture("bosa.png", bosa_tex);
+}
+
 void Rocket::nose_cone() {
     glPushMatrix();
         ring(0.7);
@@ -9,7 +22,7 @@ void Rocket::nose_cone() {
     glPopMatrix();
 }
 
-void Rocket::booster_bot(int length) {
+void Rocket::booster_bot(int length, GLuint *tex) {
     glPushMatrix();
         glRotatef(180, 1, 0, 0);
         disk();
@@ -18,7 +31,10 @@ void Rocket::booster_bot(int length) {
     glPushMatrix();
         glTranslatef(0, 1, 0);
         glScalef(0.9, length, 0.9);
+        if (tex != NULL)
+            enable_texture(*tex);
         ring(1);
+        disable_texture();
     glPopMatrix();
 }
 
@@ -32,7 +48,7 @@ void Rocket::booster() {
 }
 
 void Rocket::draw_geometry() {
-    glTranslatef(0, -6, 0);
+    set_material(white_glossy_paint);
 
     glPushMatrix();
         glTranslatef(-2, 0, 0);
@@ -42,12 +58,10 @@ void Rocket::draw_geometry() {
     glPopMatrix();
 
     glPushMatrix();
-        booster_bot(16);
+        booster_bot(16, &bosa_tex);
         glTranslatef(0, 16, 0);
-
         ring(1.1, 0.9);
         glTranslatef(0, 1, 0);
-
         glPushMatrix();
             glScalef(1.1, 2, 1.1);
             ring(1);
@@ -58,5 +72,4 @@ void Rocket::draw_geometry() {
             nose_cone();
         glPopMatrix();
     glPopMatrix();
-
 }

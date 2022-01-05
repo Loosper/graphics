@@ -53,9 +53,13 @@ OBJECTS_DIR   = ./
 ####### Files
 
 SOURCES       = main.cpp \
-		Scene.cpp 
+		Scene.cpp \
+		Drawer.cpp \
+		Rocket.cpp 
 OBJECTS       = main.o \
-		Scene.o
+		Scene.o \
+		Drawer.o \
+		Rocket.o
 DIST          = /usr/lib/qt/mkspecs/features/spec_pre.prf \
 		/usr/lib/qt/mkspecs/common/unix.conf \
 		/usr/lib/qt/mkspecs/common/linux.conf \
@@ -220,8 +224,12 @@ DIST          = /usr/lib/qt/mkspecs/features/spec_pre.prf \
 		/usr/lib/qt/mkspecs/features/exceptions.prf \
 		/usr/lib/qt/mkspecs/features/yacc.prf \
 		/usr/lib/qt/mkspecs/features/lex.prf \
-		scene.pro Scene.h main.cpp \
-		Scene.cpp
+		scene.pro Scene.h \
+		Drawer.h \
+		Rocket.h main.cpp \
+		Scene.cpp \
+		Drawer.cpp \
+		Rocket.cpp
 QMAKE_TARGET  = scene
 DESTDIR       = 
 TARGET        = scene
@@ -579,8 +587,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/qt/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents Scene.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp Scene.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents Scene.h Drawer.h Rocket.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp Scene.cpp Drawer.cpp Rocket.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -630,11 +638,21 @@ compiler_clean: compiler_moc_predefs_clean
 
 ####### Compile
 
-main.o: main.cpp Scene.h
+main.o: main.cpp Scene.h \
+		Drawer.h \
+		Rocket.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
-Scene.o: Scene.cpp Scene.h
+Scene.o: Scene.cpp Scene.h \
+		Drawer.h \
+		Rocket.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Scene.o Scene.cpp
+
+Drawer.o: Drawer.cpp Drawer.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Drawer.o Drawer.cpp
+
+Rocket.o: Rocket.cpp Rocket.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Rocket.o Rocket.cpp
 
 ####### Install
 

@@ -4,9 +4,6 @@
 #include <iostream>
 #include <algorithm>
 
-#include <assert.h>
-
-#include <GL/glu.h>
 #include <Qt>
 #include <QKeyEvent>
 #include <QAction>
@@ -29,19 +26,19 @@
 
 using namespace std;
 
+
+static struct material smooth_material = {
+    {0.5, 0.5, 0.5, 1.0},
+    {0.5, 0.5, 0.5, 1.0},
+    {0.0, 0.0, 0.0, 1.0},
+    3.0
+};
+
+GLfloat light_pos[] = {10, 3, 50, 1};
+
 GLuint markus_tex;
-
-void draw_triangle(QVector3D v1, QVector3D v2, QVector3D v3) {
-    QVector3D normal = QVector3D::normal(v1, v2, v3);
-    // qDebug() << normal;
-	glBegin(GL_TRIANGLES);
-        glNormal3f(normal.x(), normal.y(), normal.z());
-        glVertex3f(v1.x(), v1.y(), v1.z());
-        glVertex3f(v2.x(), v2.y(), v2.z());
-        glVertex3f(v3.x(), v3.y(), v3.z());
-    glEnd();
-
-}
+GLuint mark_tex;
+GLuint earth_tex;
 
 Scene::Scene(): QGLWidget() {
     // force update at ~60 fps
@@ -50,6 +47,11 @@ Scene::Scene(): QGLWidget() {
     connect(timer, &QTimer::timeout, this, &Scene::updateGL);
     timer->start(17);
 
+    quad = gluNewQuadric();
+    gluQuadricDrawStyle(quad, GLU_FILL);
+    gluQuadricOrientation(quad, GLU_OUTSIDE);
+    gluQuadricNormals(quad, GLU_SMOOTH);
+    gluQuadricTexture(quad, GL_TRUE);
 }
 
 void Scene::keyPressEvent(QKeyEvent *event) {
@@ -95,50 +97,35 @@ void Scene::mouseMoveEvent(QMouseEvent *event) {
     cursor.setPos(mapToGlobal(rect().center()));
 }
 
-typedef struct materialStruct {
-    GLfloat ambient[4];
-    GLfloat diffuse[4];
-    GLfloat specular[4];
-    GLfloat shininess;
-} materialStruct;
-
-static materialStruct yellowPlastic = {
-    {0.5f,0.5f,0.5f,1.0f },
-    {0.5f,0.5f,0.5f,1.0f },
-    {0.0f,0.0f,0.0f,1.0f },
-    3.0f
-};
-
 void Scene::initializeGL() {
     glClearColor(0.3, 0.3, 0.3, 0);
 
     glEnable(GL_NORMALIZE);
     glEnable(GL_DEPTH_TEST);
+    // VERY useful for debug
+    glEnable(GL_CULL_FACE);
+
+    glEnable(GL_LIGHTING);
     glShadeModel(GL_SMOOTH);
 
-    GLfloat light_pos[] = {10, 3, 50, 1};
-    glEnable(GL_LIGHTING); // enable lighting in general
-    glEnable(GL_LIGHT0);   // each light source must also be enabled
+    glEnable(GL_LIGHT0);
     glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
-
-    // TODO: temporary
-    glMaterialfv(GL_FRONT, GL_AMBIENT,    yellowPlastic.ambient);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE,    yellowPlastic.diffuse);
-    glMaterialfv(GL_FRONT, GL_SPECULAR,   yellowPlastic.specular);
-    glMaterialf(GL_FRONT, GL_SHININESS,   yellowPlastic.shininess);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-    load_texture();
+    load_texture("markus.ppm", &markus_tex);
+    load_texture("Marc_Dekamps.ppm", &mark_tex);
+    load_texture("Mercator-projection.ppm", &earth_tex);
+
 }
 
 
-void Scene::load_texture() {
-    QImage image("markus.ppm", "ppm");
+void Scene::load_texture(const char *file, GLuint *tex) {
+    QImage image(file, "ppm");
 
-    glGenTextures(1, &markus_tex);
-    glBindTexture(GL_TEXTURE_2D, markus_tex);
+    glGenTextures(1, tex);
+    glBindTexture(GL_TEXTURE_2D, *tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -147,6 +134,13 @@ void Scene::load_texture() {
         GL_TEXTURE_2D, 0, GL_RGBA, image.width(), image.height(), 0, GL_RGBA,
         GL_UNSIGNED_BYTE, QGLWidget::convertToGLFormat(image).bits()
     );
+}
+
+void Scene::set_material(struct material &material) {
+    glMaterialfv(GL_FRONT, GL_AMBIENT,  material.ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE,  material.diffuse);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, material.specular);
+    glMaterialf(GL_FRONT, GL_SHININESS, material.shininess);
 }
 
 void Scene::resizeGL(int w, int h) {
@@ -158,7 +152,40 @@ void Scene::resizeGL(int w, int h) {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     // glOrtho(-10, 10, -10, 10, -10, 10);
-    gluPerspective(60, ratio, 1, 30);
+    gluPerspective(60, ratio, 0.1, 30);
+}
+
+void draw_triangle(QVector3D v1, QVector3D v2, QVector3D v3) {
+    QVector3D normal = QVector3D::normal(v1, v2, v3);
+    // qDebug() << normal;
+	glBegin(GL_TRIANGLES);
+        glNormal3f(normal.x(), normal.y(), normal.z());
+        glVertex3f(v1.x(), v1.y(), v1.z());
+        glVertex3f(v2.x(), v2.y(), v2.z());
+        glVertex3f(v3.x(), v3.y(), v3.z());
+    glEnd();
+}
+
+
+void Scene::sphere() {
+    glPushMatrix();
+        glRotatef(-90, 1, 0, 0);
+        gluSphere(quad, 1, 100, 100);
+    glPopMatrix();
+}
+
+void Scene::ring(GLfloat slope, GLfloat radius) {
+    glPushMatrix();
+        glRotatef(-90, 1, 0, 0);
+        gluCylinder(quad, radius, slope, 1, 100, 100);
+    glPopMatrix();
+}
+
+void Scene::disk() {
+    glPushMatrix();
+        glRotatef(-90, 1, 0, 0);
+        gluDisk(quad, 0, 1, 100, 1);
+    glPopMatrix();
 }
 
 void Scene::paintGL() {
@@ -172,21 +199,81 @@ void Scene::paintGL() {
     QVector3D up_v(0, 1, 0);
     look_at += camera_pos;
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    set_material(smooth_material);
+    glBegin(GL_LINES);
+        glColor3f(1, 0, 0);
+        glVertex3f(0, 0, 0);
+        glVertex3f(1, 0, 0);
+        glColor3f(0, 1, 0);
+        glVertex3f(0, 0, 0);
+        glVertex3f(0, 1, 0);
+        glColor3f(0, 0, 1);
+        glVertex3f(0, 0, 0);
+        glVertex3f(0, 0, 1);
+    glEnd();
+    glColor3f(1, 1, 1);
+
+    // glColor3f(1, 1, 1);
+    // glPushMatrix();
+    //     glTranslatef(0, 5, -5);
+    //     this->icosahedron();
+    //     glTranslatef(3, 0, 0);
+    //     glEnable(GL_TEXTURE_2D);
+    //     glBindTexture(GL_TEXTURE_2D, markus_tex);
+    //     glColor3f(1, 1, 1);
+    //     this->cube();
+    //     glTranslatef(3, 0, 0);
+    //     glBindTexture(GL_TEXTURE_2D, earth_tex);
+    //     sphere();
+    //     glTranslatef(3, 0, 0);
+    //     cylinder();
+    //     glDisable(GL_TEXTURE_2D);
+    // glPopMatrix();
+
+
+    // draw_triangle(QVector3D(-10, 0, -10), QVector3D(0, 0, 10), QVector3D(10, 0, -10));
+
+    glTranslatef(0, -5.5, 0);
+
     glPushMatrix();
-    glTranslatef(0, 5, -5);
-    this->icosahedron();
-    glTranslatef(3, 0, 0);
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, markus_tex);
-    glColor3f(1, 1, 1);
-    this->cube();
-    glDisable(GL_TEXTURE_2D);
-
+        glTranslatef(-2, 0, 0);
+        for (int i = 0; i < 3; i++) {
+            glPushMatrix();
+                glRotatef(180, 1, 0, 0);
+                disk();
+            glPopMatrix();
+            ring(0.9);
+            glPushMatrix();
+                glTranslatef(0, 1, 0);
+                glScalef(0.9, 10, 0.9);
+                ring(1);
+            glPopMatrix();
+            glPushMatrix();
+                glTranslatef(0, 11, 0);
+                glScalef(0.9, 1, 0.9);
+                ring(0.7);
+                glTranslatef(0, 1, 0);
+                glScalef(0.7, 0.7, 0.7);
+                sphere();
+            glPopMatrix();
+            glTranslatef(2, 0, 0);
+        }
     glPopMatrix();
-
-    glColor3f(1, 1, 1);
-    draw_triangle(QVector3D(-10, 0, -10), QVector3D(0, 0, 10), QVector3D(10, 0, -10));
+    glPushMatrix();
+        glTranslatef(0, 11, 0);
+        glPushMatrix();
+            glScalef(0.9, 5, 0.9);
+            ring(1);
+        glPopMatrix();
+        glTranslatef(0, 5, 0);
+        ring(1.1, 0.9);
+        glTranslatef(0, 1, 0);
+        glPushMatrix();
+            glScalef(1.1, 2, 1.1);
+            ring(1);
+        glPopMatrix();
+    glPopMatrix();
 
     glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -237,27 +324,27 @@ void Scene::icosahedron() {
     // glVertex3f(l2_b.x(), l2_b.y(), l2_b.z());
     // glEnd();
 
-    glColor3f(1, 0.5, 0.0); // orange
+    // glColor3f(1, 0.5, 0.0); // orange
     draw_triangle(l5_r, l5_l, l4_f);
     draw_triangle(l1_r, l2_f, l1_l);
     draw_triangle(l5_r, l5_l, l4_b);
     draw_triangle(l1_l, l1_r, l2_b);
-    glColor3f(0, 0, 1.0); // blue
+    // glColor3f(0, 0, 1.0); // blue
     draw_triangle(l2_f, l1_r, l3_rf);
     draw_triangle(l1_l, l2_f, l3_lf);
     draw_triangle(l2_b, l1_r, l3_rb);
     draw_triangle(l1_l, l2_b, l3_lb);
-    glColor3f(1, 0, 0); // red
+    // glColor3f(1, 0, 0); // red
     draw_triangle(l3_lf, l2_f, l4_f);
     draw_triangle(l3_rf, l4_f, l2_f);
     draw_triangle(l3_lb, l2_b, l4_b);
     draw_triangle(l3_rb, l4_b, l2_b);
-    glColor3f(0, 1, 0); // green
+    // glColor3f(0, 1, 0); // green
     draw_triangle(l5_r, l4_f,  l3_rf);
     draw_triangle(l3_lf, l4_f,  l5_l);
     draw_triangle(l3_rb,  l5_r, l4_b);
     draw_triangle(l5_l,  l3_lb, l4_b);
-    glColor3f(1, 1, 0); // yellow
+    // glColor3f(1, 1, 0); // yellow
     draw_triangle(l3_lf, l3_lb, l1_l);
     draw_triangle(l3_lb, l3_lf, l5_l);
     draw_triangle(l3_rb, l3_rf, l1_r);
@@ -289,9 +376,9 @@ void Scene::cube() {
 
     vector<array<GLfloat, 4>> faces = {
         {0, 2, 3, 1},
-        {4, 6, 7, 5},
+        {4, 5, 7, 6},
         {1, 3, 7, 5},
-        {0, 2, 6, 4},
+        {0, 4, 6, 2},
         {0, 1, 5, 4},
         {3, 2, 6, 7}
     };

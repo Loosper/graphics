@@ -13,9 +13,46 @@ GLuint marc_tex;
 extern struct material sun_material;
 
 void SolarSystem::advance_movement() {
-    earth_rot -= 0.2;
-    earth_orbit += 0.01;
-    orbit -= 0.003;
+    if (paused)
+        return;
+
+    earth_rot    += earth_spin_speed   / 10.0;
+    default_rot  += 3                  / 10.0;
+    earth_orbit  += earth_orbit_speed  / 1000.0;
+    saturn_orbit += saturn_orbit_speed / 1000.0;
+    marc_orbit   += marc_orbit_speed   / 1000.0;
+    marcus_orbit += marcus_orbit_speed / 1000.0;
+}
+
+void SolarSystem::set_saturn_speed(int speed) {
+    saturn_orbit_speed = speed;
+}
+
+void SolarSystem::set_marc_speed(int speed) {
+    marc_orbit_speed = speed;
+}
+void SolarSystem::set_marcus_speed(int speed) {
+    marcus_orbit_speed = speed;
+}
+
+void SolarSystem::set_earth_speed(int speed) {
+    earth_orbit_speed = speed;
+}
+
+void SolarSystem::set_earth_spin(int spin) {
+    earth_spin_speed = spin;
+}
+
+void SolarSystem::set_earth_tilt(int tilt) {
+    earth_tilt_angle = tilt;
+}
+
+void SolarSystem::set_earth_orbit_tilt(int tilt) {
+    earth_orbit_tilt_angle = tilt;
+}
+
+void SolarSystem::pause() {
+    paused = !paused;
 }
 
 void SolarSystem::gl_init() {
@@ -46,7 +83,6 @@ void SolarSystem::saturn() {
 
 void SolarSystem::earth() {
     glPushMatrix();
-        glRotatef(earth_rot, 0, 1, 0);
         enable_texture(earth_tex);
         sphere();
         disable_texture();
@@ -61,31 +97,37 @@ void SolarSystem::draw_geometry() {
         glPushMatrix();
             old = set_material(sun_material);
             glRotatef(earth_rot, 0, 1, 0);
+            // TODO: textue on the back???? to light that maybe?
             icosahedron();
             set_material(old);
         glPopMatrix();
 
         glPushMatrix();
-            glTranslatef(sin(orbit) * 5, 0, cos(orbit) * 5);
+            glTranslatef(sin(marcus_orbit) * 5, 0, cos(marcus_orbit) * 5);
+            glRotatef(default_rot, 0, 1, 0);
             enable_texture(markus_tex);
             sphere();
             disable_texture();
         glPopMatrix();
         glPushMatrix();
-            glTranslatef(sin(orbit) * 25, 0, cos(orbit) * 25);
+            glTranslatef(sin(marc_orbit) * 25, 0, cos(marc_orbit) * 25);
+            glRotatef(default_rot, 0, 1, 0);
             enable_texture(marc_tex);
             sphere();
             disable_texture();
         glPopMatrix();
 
-        glTranslatef(sin(orbit) * 10, 0, cos(orbit) * 10);
+        glTranslatef(sin(saturn_orbit) * 10, 0, cos(saturn_orbit) * 10);
         glPushMatrix();
             glScalef(4, 4, 4);
             saturn();
         glPopMatrix();
 
         glPushMatrix();
+            glRotatef(earth_orbit_tilt_angle, 1, 0, 0);
             glTranslatef(sin(earth_orbit) * 13, 0, cos(earth_orbit) * 13);
+            glRotatef(earth_tilt_angle, 0, 0, 1);
+            glRotatef(earth_rot, 0, 1, 0);
             earth();
             glTranslatef(0, 0.95, 0);
             glScalef(0.3, 0.3, 0.3);

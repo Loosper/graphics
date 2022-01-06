@@ -13,9 +13,6 @@ int main(int argc, char *argv[]) {
     QShortcut *shortcut = new QShortcut(QKeySequence::Quit, window);
     QObject::connect(shortcut, &QShortcut::activated, &app, &QApplication::quit);
 
-    window->resize(1280, 720);
-    window->show();
-
     app.exec();
     return 0;
 }

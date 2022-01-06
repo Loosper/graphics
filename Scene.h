@@ -1,6 +1,7 @@
 #include <QGLWidget>
 #include <QPoint>
 #include <QVector3D>
+#include <QSlider>
 
 #include <GL/glu.h>
 
@@ -24,11 +25,13 @@ class Scene: public QGLWidget, public Drawer {
         void tick_movement();
 
 	private:
+        QSlider *tilt_slider(void (SolarSystem::*method)(int));
+        QSlider *speed_slider(void (SolarSystem::*method)(int));
         // left/right
         GLfloat yaw_angle = -90;
         // up/down
         GLfloat pitch_angle = 0;
         QCursor cursor = QCursor(Qt::BlankCursor);
         QVector3D camera_pos = {0, 0.3, 2};
-        SolarSystem solar = SolarSystem();
+        SolarSystem solar;
 };

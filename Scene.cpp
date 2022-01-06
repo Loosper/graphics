@@ -10,6 +10,13 @@
 #include <QTimer>
 #include <QApplication>
 
+#include <QBoxLayout>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QWidget>
+#include <QLabel>
+#include <QPushButton>
+#include <QRadioButton>
 #include <QDebug>
 
 #define RAD(x) (x * M_PI / 180)
@@ -28,12 +35,81 @@ extern struct material light1;
 GLfloat light_pos[] = {0, 0, 0, 1};
 
 
+QSlider *Scene::speed_slider(void (SolarSystem::*method)(int)) {
+    QSlider *slider = new QSlider(Qt::Horizontal);
+
+    connect(slider, &QSlider::valueChanged, &solar, method);
+
+    slider->setMinimum(-100);
+    slider->setMaximum(99);
+    slider->setValue(0);
+    slider->setTickInterval(50);
+    slider->setTickPosition(QSlider::TicksBelow);
+
+    return slider;
+}
+
+QSlider *Scene::tilt_slider(void (SolarSystem::*method)(int)) {
+    QSlider *slider = new QSlider(Qt::Horizontal);
+
+    connect(slider, &QSlider::valueChanged, &solar, method);
+
+    slider->setMinimum(-180);
+    slider->setMaximum(180);
+    slider->setValue(0);
+    slider->setTickInterval(45);
+    slider->setTickPosition(QSlider::TicksBelow);
+
+    return slider;
+}
+
 Scene::Scene(): QGLWidget(), Drawer() {
-    QTimer *render_timer = new QTimer(this);
+    QWidget *root = new QWidget();
+    QWidget *hud  = new QWidget();
+    QTimer *render_timer   = new QTimer(this);
     QTimer *movement_timer = new QTimer(this);
+    QBoxLayout *layout      = new QHBoxLayout(root);
+    QVBoxLayout *hud_layout = new QVBoxLayout(hud);
+    QRadioButton *pause_button = new QRadioButton("Paused");
+
+    // computational heresy? Probably
+    // shoot me but this is how it is
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(hud);
+    layout->addWidget(this);
+
+    hud_layout->setAlignment(Qt::AlignTop);
+    hud_layout->addWidget(pause_button);
+    hud_layout->addWidget(new QLabel("speed of Saturn"));
+    hud_layout->addWidget(speed_slider(&SolarSystem::set_saturn_speed));
+    hud_layout->addWidget(new QLabel("speed of Marc"));
+    hud_layout->addWidget(speed_slider(&SolarSystem::set_marc_speed));
+    hud_layout->addWidget(new QLabel("speed of Marcus"));
+    hud_layout->addWidget(speed_slider(&SolarSystem::set_marcus_speed));
+    hud_layout->addWidget(new QLabel("speed of Earth orbit"));
+    hud_layout->addWidget(speed_slider(&SolarSystem::set_earth_speed));
+    hud_layout->addWidget(new QLabel("speed of Earth spin"));
+    hud_layout->addWidget(speed_slider(&SolarSystem::set_earth_spin));
+    hud_layout->addWidget(new QLabel("tilt of earth"));
+    hud_layout->addWidget(tilt_slider(&SolarSystem::set_earth_tilt));
+    hud_layout->addWidget(new QLabel("tilt of earth orbit"));
+    hud_layout->addWidget(tilt_slider(&SolarSystem::set_earth_orbit_tilt));
+    hud_layout->addWidget(new QLabel("Controls:"));
+    hud_layout->addWidget(new QLabel("L click:\tcontrol camera"));
+    hud_layout->addWidget(new QLabel("Esc:\trelease mouse"));
+    hud_layout->addWidget(new QLabel("Mouse:\tlook around"));
+    hud_layout->addWidget(new QLabel("WASD:\tmove around"));
+    hud_layout->addWidget(new QLabel("Space:\tgo up"));
+    hud_layout->addWidget(new QLabel("C:\tgo down"));
+    hud_layout->addWidget(new QLabel("Shift:\ttoggle lighting"));
+
+    hud->setMaximumWidth(200);
+    root->resize(1280, 720);
+    root->show();
 
     connect(render_timer, &QTimer::timeout, this, &Scene::updateGL);
     connect(movement_timer, &QTimer::timeout, this, &Scene::tick_movement);
+    connect(pause_button, &QPushButton::clicked, &solar, &SolarSystem::pause);
     // force update at ~60 fps
     // so I don't have to manually repaint whenever i change shit
     render_timer->start(17);
@@ -54,6 +130,7 @@ void Scene::keyPressEvent(QKeyEvent *event) {
     } else if (event->key() == Qt::Key_Escape) {
         QApplication::restoreOverrideCursor();
         setMouseTracking(false);
+        releaseKeyboard();
     } else if (event->key() == Qt::Key_Space) {
         camera_pos.setY(camera_pos.y() + 0.1);
     } else if (event->key() == Qt::Key_C) {
@@ -75,6 +152,7 @@ void Scene::mousePressEvent(QMouseEvent *event) {
     QApplication::setOverrideCursor(cursor);
     cursor.setPos(mapToGlobal(rect().center()));
     setMouseTracking(true);
+    grabKeyboard();
 }
 
 void Scene::mouseMoveEvent(QMouseEvent *event) {
@@ -155,8 +233,8 @@ void Scene::paintGL() {
     glLoadIdentity();
 
     // why does this not work?
-    // glRotatef(yaw_angle, 0, 1, 0);
-    // glRotatef(pitch_angle, 0, 0, 1);
+    glRotatef(yaw_angle, 0, 1, 0);
+    glRotatef(pitch_angle, 0, 0, 1);
 
     glLightfv(GL_LIGHT1, GL_POSITION, light_pos);
 	gluLookAt(

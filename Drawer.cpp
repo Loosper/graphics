@@ -64,10 +64,10 @@ void Drawer::ring(GLfloat slope, GLfloat radius) {
     glPopMatrix();
 }
 
-void Drawer::disk() {
+void Drawer::disk(GLfloat hole) {
     glPushMatrix();
         glRotatef(-90, 1, 0, 0);
-        gluDisk(quad, 0, 1, FACES, 1);
+        gluDisk(quad, hole, 1, FACES, 1);
     glPopMatrix();
 }
 

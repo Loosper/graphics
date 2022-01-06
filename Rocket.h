@@ -1,3 +1,5 @@
+#ifndef ROCKET_H
+#define ROCKET_H
 #include <cstddef>
 #include "Drawer.h"
 
@@ -15,3 +17,5 @@ class Rocket: public Drawer {
         void booster_bot(int height, GLuint *tex = NULL);
         void booster();
 };
+
+#endif

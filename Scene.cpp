@@ -12,7 +12,6 @@
 
 #include <QDebug>
 
-#define PHI 1.618
 #define RAD(x) (x * M_PI / 180)
 // https://gamedev.stackexchange.com/questions/43588/how-to-rotate-camera-centered-around-the-cameras-position
 // Based on these. I don't touch the up vector for now. Works only in a single axis
@@ -25,16 +24,16 @@
 
 
 static struct material smooth_material = {
-    {0.5, 0.5, 0.5, 1.0},
+    {1, 1, 1, 1.0},
     {0.5, 0.5, 0.5, 1.0},
     {0.0, 0.0, 0.0, 1.0},
     3.0
 };
 
-GLfloat light_pos[] = {10, 3, 50, 1};
+// GLfloat light_pos[] = {10, 3, 50, 1};
+GLfloat light_pos[] = {0, 0, 0, 1};
 GLuint markus_tex;
 GLuint mark_tex;
-GLuint earth_tex;
 
 Scene::Scene(): QGLWidget(), Drawer() {
     // force update at ~60 fps
@@ -103,9 +102,8 @@ void Scene::initializeGL() {
 
     load_texture("markus.ppm", markus_tex);
     load_texture("mark.ppm", mark_tex);
-    load_texture("earth.ppm", earth_tex);
 
-    rocket.gl_init();
+    solar.gl_init();
 }
 
 void Scene::resizeGL(int w, int h) {
@@ -117,19 +115,9 @@ void Scene::resizeGL(int w, int h) {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     // glOrtho(-10, 10, -10, 10, -10, 10);
-    gluPerspective(60, ratio, 0.1, 30);
+    gluPerspective(60, ratio, 0.1, 100);
 }
 
-void draw_triangle(QVector3D v1, QVector3D v2, QVector3D v3) {
-    QVector3D normal = QVector3D::normal(v1, v2, v3);
-    // qDebug() << normal;
-	glBegin(GL_TRIANGLES);
-        glNormal3f(normal.x(), normal.y(), normal.z());
-        glVertex3f(v1.x(), v1.y(), v1.z());
-        glVertex3f(v2.x(), v2.y(), v2.z());
-        glVertex3f(v3.x(), v3.y(), v3.z());
-    glEnd();
-}
 
 void Scene::draw_geometry() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -147,20 +135,7 @@ void Scene::draw_geometry() {
     glEnd();
     glColor3f(1, 1, 1);
 
-    rocket.draw_geometry();
-    // GLfloat i = 0;
-    // glMatrixMode(GL_TEXTURE);
-    // glPushMatrix();
-    // glTranslatef(10, 0, 0);
-    // glScalef(2, 1, 1);
-    // glMatrixMode(GL_MODELVIEW);
-
-
-    // glMatrixMode(GL_TEXTURE);
-    // glPopMatrix();
-    // glMatrixMode(GL_MODELVIEW);
-
-    // draw_triangle(QVector3D(-10, 0, -10), QVector3D(0, 0, 10), QVector3D(10, 0, -10));
+    solar.draw_geometry();
 }
 
 void Scene::paintGL() {
@@ -187,72 +162,11 @@ void Scene::paintGL() {
         up_v.x(), up_v.y(), up_v.z()
     );
 
-    glPushMatrix();
-        glTranslatef(0, -8, -15);
-        draw_geometry();
-    glPopMatrix();
-
+    glTranslatef(0, 0, -20);
     glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 
+    draw_geometry();
+
 	glFlush();
-}
-
-
-void Scene::icosahedron() {
-    // naming scheme is by y. Lvl 1 is at the bottom and we go up. l/r are left/right, f/b are forward/backward
-    QVector3D
-        l1_l(-1, -PHI, 0), l1_r(1, -PHI, 0),
-        l2_f(0, -1, PHI), l2_b(0, -1, -PHI),
-        l3_lf(-PHI, 0, 1), l3_lb(-PHI, 0, -1), l3_rf(PHI, 0, 1), l3_rb(PHI, 0, -1),
-        l4_f(0, 1, PHI), l4_b(0, 1, -PHI),
-        l5_l(-1, PHI, 0), l5_r(1, PHI, 0);
-
-    // // guides
-    // glBegin(GL_LINES);
-    // // green
-    // glColor3f(0, 1.0, 0.5);
-    // glVertex3f(l5_r.x(), l5_r.y(), l5_r.z());
-    // glVertex3f(l5_l.x(), l5_l.y(), l5_l.z());
-    // glVertex3f(l1_r.x(), l1_r.y(), l1_r.z());
-    // glVertex3f(l1_l.x(), l1_l.y(), l1_l.z());
-    // // cyan
-    // glColor3f(0, 0.5, 1.0);
-    // glVertex3f(l3_lf.x(), l3_lf.y(), l3_lf.z());
-    // glVertex3f(l3_lb.x(), l3_lb.y(), l3_lb.z());
-    // glVertex3f(l3_rf.x(), l3_rf.y(), l3_rf.z());
-    // glVertex3f(l3_rb.x(), l3_rb.y(), l3_rb.z());
-    // // orange
-    // glColor3f(1, 0.5, 0.0);
-    // glVertex3f(l4_f.x(), l4_f.y(), l4_f.z());
-    // glVertex3f(l4_b.x(), l4_b.y(), l4_b.z());
-    // glVertex3f(l2_f.x(), l2_f.y(), l2_f.z());
-    // glVertex3f(l2_b.x(), l2_b.y(), l2_b.z());
-    // glEnd();
-
-    // glColor3f(1, 0.5, 0.0); // orange
-    draw_triangle(l5_r, l5_l, l4_f);
-    draw_triangle(l1_r, l2_f, l1_l);
-    draw_triangle(l5_r, l5_l, l4_b);
-    draw_triangle(l1_l, l1_r, l2_b);
-    // glColor3f(0, 0, 1.0); // blue
-    draw_triangle(l2_f, l1_r, l3_rf);
-    draw_triangle(l1_l, l2_f, l3_lf);
-    draw_triangle(l2_b, l1_r, l3_rb);
-    draw_triangle(l1_l, l2_b, l3_lb);
-    // glColor3f(1, 0, 0); // red
-    draw_triangle(l3_lf, l2_f, l4_f);
-    draw_triangle(l3_rf, l4_f, l2_f);
-    draw_triangle(l3_lb, l2_b, l4_b);
-    draw_triangle(l3_rb, l4_b, l2_b);
-    // glColor3f(0, 1, 0); // green
-    draw_triangle(l5_r, l4_f,  l3_rf);
-    draw_triangle(l3_lf, l4_f,  l5_l);
-    draw_triangle(l3_rb,  l5_r, l4_b);
-    draw_triangle(l5_l,  l3_lb, l4_b);
-    // glColor3f(1, 1, 0); // yellow
-    draw_triangle(l3_lf, l3_lb, l1_l);
-    draw_triangle(l3_lb, l3_lf, l5_l);
-    draw_triangle(l3_rb, l3_rf, l1_r);
-    draw_triangle(l3_rf, l3_rb, l5_r);
 }
 

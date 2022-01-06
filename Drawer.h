@@ -11,7 +11,7 @@ class Drawer {
         Drawer();
 		void sphere();
 		void ring(GLfloat slope, GLfloat radius = 1);
-		void disk();
+		void disk(GLfloat hole = 0);
         void cube();
         virtual void draw_geometry() = 0;
         virtual void gl_init() = 0;

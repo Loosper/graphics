@@ -5,7 +5,7 @@
 #include <GL/glu.h>
 
 #include "Drawer.h"
-#include "Rocket.h"
+#include "SolarSystem.h"
 
 
 class Scene: public QGLWidget, public Drawer {
@@ -29,7 +29,5 @@ class Scene: public QGLWidget, public Drawer {
         GLfloat pitch_angle = 0;
         QCursor cursor = QCursor(Qt::BlankCursor);
         QVector3D camera_pos = {0, 0.3, 2};
-        Rocket rocket = Rocket();
-
-		void icosahedron();
+        SolarSystem solar = SolarSystem();
 };

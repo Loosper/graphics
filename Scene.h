@@ -21,6 +21,7 @@ class Scene: public QGLWidget, public Drawer {
         void mousePressEvent(QMouseEvent *event);
 
         void gl_init() {}
+        void tick_movement();
 
 	private:
         // left/right

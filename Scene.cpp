@@ -23,24 +23,25 @@
 #define Z_OFF (sin(RAD(yaw_angle)))
 
 
-static struct material smooth_material = {
-    {1, 1, 1, 1.0},
-    {0.5, 0.5, 0.5, 1.0},
-    {0.0, 0.0, 0.0, 1.0},
-    3.0
-};
-
-// GLfloat light_pos[] = {10, 3, 50, 1};
+extern struct material smooth_material;
+extern struct material light1;
 GLfloat light_pos[] = {0, 0, 0, 1};
-GLuint markus_tex;
-GLuint mark_tex;
+
 
 Scene::Scene(): QGLWidget(), Drawer() {
+    QTimer *render_timer = new QTimer(this);
+    QTimer *movement_timer = new QTimer(this);
+
+    connect(render_timer, &QTimer::timeout, this, &Scene::updateGL);
+    connect(movement_timer, &QTimer::timeout, this, &Scene::tick_movement);
     // force update at ~60 fps
     // so I don't have to manually repaint whenever i change shit
-    QTimer *timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, &Scene::updateGL);
-    timer->start(17);
+    render_timer->start(17);
+    // so that it's evently spaced and easy to think about
+    movement_timer->start(10);
+}
+void Scene::tick_movement() {
+    solar.advance_movement();
 }
 
 void Scene::keyPressEvent(QKeyEvent *event) {
@@ -87,7 +88,7 @@ void Scene::mouseMoveEvent(QMouseEvent *event) {
 }
 
 void Scene::initializeGL() {
-    glClearColor(0.3, 0.3, 0.3, 0);
+    glClearColor(0, 0, 0, 0);
 
     glEnable(GL_NORMALIZE);
     glEnable(GL_DEPTH_TEST);
@@ -96,12 +97,14 @@ void Scene::initializeGL() {
     glEnable(GL_LIGHTING);
     glShadeModel(GL_SMOOTH);
     glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHT1);
+
+    glLightfv(GL_LIGHT1, GL_AMBIENT, light1.ambient);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, light1.diffuse);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, light1.specular);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-    load_texture("markus.ppm", markus_tex);
-    load_texture("mark.ppm", mark_tex);
 
     solar.gl_init();
 }
@@ -114,7 +117,6 @@ void Scene::resizeGL(int w, int h) {
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    // glOrtho(-10, 10, -10, 10, -10, 10);
     gluPerspective(60, ratio, 0.1, 100);
 }
 
@@ -156,6 +158,7 @@ void Scene::paintGL() {
     // glRotatef(yaw_angle, 0, 1, 0);
     // glRotatef(pitch_angle, 0, 0, 1);
 
+    glLightfv(GL_LIGHT1, GL_POSITION, light_pos);
 	gluLookAt(
         camera_pos.x(), camera_pos.y(), camera_pos.z(),
         look_at.x(), look_at.y(), look_at.z(),

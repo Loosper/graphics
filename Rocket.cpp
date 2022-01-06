@@ -2,12 +2,8 @@
 
 
 GLuint bosa_tex;
-static struct material white_glossy_paint = {
-    {0.7, 0.7, 0.7, 1.0},
-    {0.3, 0.3, 0.3, 1.0},
-    {0.4, 0.4, 0.4, 1.0},
-    1.5
-};
+extern struct material white_glossy_paint;
+
 
 void Rocket::gl_init() {
     load_texture("bosa.png", bosa_tex);
@@ -48,7 +44,7 @@ void Rocket::booster() {
 }
 
 void Rocket::draw_geometry() {
-    set_material(white_glossy_paint);
+    struct material old = set_material(white_glossy_paint);
 
     glPushMatrix();
         glTranslatef(-2, 0, 0);
@@ -72,4 +68,6 @@ void Rocket::draw_geometry() {
             nose_cone();
         glPopMatrix();
     glPopMatrix();
+
+    set_material(old);
 }

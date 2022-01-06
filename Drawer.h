@@ -16,7 +16,7 @@ class Drawer {
         virtual void draw_geometry() = 0;
         virtual void gl_init() = 0;
 
-        void set_material(struct material &material);
+        struct material set_material(struct material &material);
         void load_texture(const char *file, GLuint &tex);
         void enable_texture(GLuint &tex);
         void disable_texture();

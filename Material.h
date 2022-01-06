@@ -7,6 +7,7 @@ struct material {
     GLfloat diffuse[4];
     GLfloat specular[4];
     GLfloat ambient[4];
+    GLfloat emission[4];
     GLfloat shininess;
 };
 

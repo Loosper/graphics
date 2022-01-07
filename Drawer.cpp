@@ -5,7 +5,7 @@
 #include "Drawer.h"
 
 
-#define FACES 100
+#define FACES 50
 
 using namespace std;
 

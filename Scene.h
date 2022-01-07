@@ -27,6 +27,7 @@ class Scene: public QGLWidget, public Drawer {
 	private:
         QSlider *tilt_slider(void (SolarSystem::*method)(int));
         QSlider *speed_slider(void (SolarSystem::*method)(int));
+        QVector3D direction();
         // left/right
         GLfloat yaw_angle = -90;
         // up/down

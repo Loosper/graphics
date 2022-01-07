@@ -22,6 +22,7 @@ class SolarSystem: public QWidget, public Drawer {
         void pause();
     private:
         Rocket rocket = Rocket();
+        GLfloat sun_rot = 0;
         GLfloat earth_rot = 0;
         GLfloat default_rot = 0;
         GLfloat earth_orbit = 0;

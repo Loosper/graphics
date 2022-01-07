@@ -16,6 +16,7 @@ class Rocket: public Drawer {
         void engine();
         void booster_bot(int height, GLuint *tex = NULL);
         void booster();
+        void struts();
 };
 
 #endif

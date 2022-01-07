@@ -28,11 +28,11 @@ struct material Drawer::set_material(struct material &material) {
     glGetMaterialfv(GL_FRONT, GL_SHININESS, &old.shininess);
     glGetMaterialfv(GL_FRONT, GL_EMISSION, old.emission);
 
-    glMaterialfv(GL_FRONT, GL_AMBIENT,  material.ambient);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE,  material.diffuse);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, material.specular);
-    glMaterialf(GL_FRONT, GL_SHININESS, material.shininess);
-    glMaterialfv(GL_FRONT, GL_EMISSION, material.emission);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,  material.ambient);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,  material.diffuse);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material.specular);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, material.shininess);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, material.emission);
 
     return old;
 }

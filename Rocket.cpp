@@ -43,6 +43,15 @@ void Rocket::booster() {
     glPopMatrix();
 }
 
+void Rocket::struts() {
+    glPushMatrix();
+        glScalef(1, 0.5, 1);
+        cube();
+        glTranslatef(0, 16, 0);
+        cube();
+    glPopMatrix();
+}
+
 void Rocket::draw_geometry() {
     struct material old = set_material(white_glossy_paint);
 
@@ -51,6 +60,13 @@ void Rocket::draw_geometry() {
         booster();
         glTranslatef(4, 0, 0);
         booster();
+    glPopMatrix();
+
+    glPushMatrix();
+        glTranslatef(-1, 2, 0);
+        struts();
+        glTranslatef(2, 0, 0);
+        struts();
     glPopMatrix();
 
     glPushMatrix();

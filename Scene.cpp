@@ -3,6 +3,8 @@
 #include <math.h>
 #include <iostream>
 #include <algorithm>
+#include <cstdlib>
+#include <time.h>
 
 #include <Qt>
 #include <QKeyEvent>
@@ -20,15 +22,6 @@
 #include <QDebug>
 
 #define RAD(x) (x * M_PI / 180)
-// https://gamedev.stackexchange.com/questions/43588/how-to-rotate-camera-centered-around-the-cameras-position
-// Based on these. I don't touch the up vector for now. Works only in a single axis
-// #define X_OFF (cos(RAD(yaw_angle)))
-// #define Y_OFF (                      sin(RAD(pitch_angle)))
-// #define Z_OFF (sin(RAD(yaw_angle)) + cos(RAD(pitch_angle)))
-#define X_OFF (cos(RAD(yaw_angle)))
-#define Y_OFF (                  0)
-#define Z_OFF (sin(RAD(yaw_angle)))
-
 
 extern struct material smooth_material;
 extern struct material light1;
@@ -40,10 +33,11 @@ QSlider *Scene::speed_slider(void (SolarSystem::*method)(int)) {
 
     connect(slider, &QSlider::valueChanged, &solar, method);
 
-    slider->setMinimum(-100);
-    slider->setMaximum(99);
-    slider->setValue(0);
-    slider->setTickInterval(50);
+    slider->setMinimum(-20);
+    slider->setMaximum(19);
+    // give them some random values so it's not boring at startup
+    slider->setValue((std::rand() % 20) - 10);
+    slider->setTickInterval(20);
     slider->setTickPosition(QSlider::TicksBelow);
 
     return slider;
@@ -71,6 +65,9 @@ Scene::Scene(): QGLWidget(), Drawer() {
     QBoxLayout *layout      = new QHBoxLayout(root);
     QVBoxLayout *hud_layout = new QVBoxLayout(hud);
     QRadioButton *pause_button = new QRadioButton("Paused");
+
+    // initialise the RNG
+    std::srand(std::time(NULL));
 
     // computational heresy? Probably
     // shoot me but this is how it is
@@ -120,13 +117,21 @@ void Scene::tick_movement() {
     solar.advance_movement();
 }
 
-void Scene::keyPressEvent(QKeyEvent *event) {
-    QVector3D direction(X_OFF / 10, 0, Z_OFF / 10);
+// I admit, I copied ths guy's homework
+// https://learnopengl.com/Getting-started/Camera
+QVector3D Scene::direction() {
+    return QVector3D(
+        cos(RAD(yaw_angle)) * cos(RAD(pitch_angle)),
+        sin(RAD(pitch_angle)),
+        sin(RAD(yaw_angle)) * cos(RAD(pitch_angle))
+    );
+}
 
+void Scene::keyPressEvent(QKeyEvent *event) {
     if (event->key() == Qt::Key_W) {
-        camera_pos += direction;
+        camera_pos += direction() / 10;
     } else if (event->key() == Qt::Key_S) {
-        camera_pos -= direction;
+        camera_pos -= direction() / 10;
     } else if (event->key() == Qt::Key_Escape) {
         QApplication::restoreOverrideCursor();
         setMouseTracking(false);
@@ -175,7 +180,7 @@ void Scene::initializeGL() {
     glEnable(GL_LIGHTING);
     glShadeModel(GL_SMOOTH);
     glEnable(GL_LIGHT0);
-    glEnable(GL_LIGHT1);
+    // glEnable(GL_LIGHT1);
 
     glLightfv(GL_LIGHT1, GL_AMBIENT, light1.ambient);
     glLightfv(GL_LIGHT1, GL_DIFFUSE, light1.diffuse);
@@ -195,46 +200,35 @@ void Scene::resizeGL(int w, int h) {
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(60, ratio, 0.1, 100);
+    gluPerspective(90, ratio, 0.1, 100);
 }
 
 
 void Scene::draw_geometry() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     set_material(smooth_material);
-    glBegin(GL_LINES);
-        glColor3f(1, 0, 0);
-        glVertex3f(0, 0, 0);
-        glVertex3f(1, 0, 0);
-        glColor3f(0, 1, 0);
-        glVertex3f(0, 0, 0);
-        glVertex3f(0, 1, 0);
-        glColor3f(0, 0, 1);
-        glVertex3f(0, 0, 0);
-        glVertex3f(0, 0, 1);
-    glEnd();
-    glColor3f(1, 1, 1);
+    // glBegin(GL_LINES);
+    //     glColor3f(1, 0, 0);
+    //     glVertex3f(0, 0, 0);
+    //     glVertex3f(1, 0, 0);
+    //     glColor3f(0, 1, 0);
+    //     glVertex3f(0, 0, 0);
+    //     glVertex3f(0, 1, 0);
+    //     glColor3f(0, 0, 1);
+    //     glVertex3f(0, 0, 0);
+    //     glVertex3f(0, 0, 1);
+    // glEnd();
+    // glColor3f(1, 1, 1);
 
     solar.draw_geometry();
 }
 
 void Scene::paintGL() {
-    // TODO: this for mulitaxis rotation. IDK what tf it does
-    // QQuaternion rot = QQuaternion::fromAxisAndAngle(0, 0, 1, yaw_angle) * QQuaternion::fromAxisAndAngle(0, 1, 0, pitch_angle);
-    // QVector3D look_at = rot.rotatedVector(QVector3D(0, 1, 0));
-    // QVector3D look_at(0, 0, 1);
-    // up_v = QVector3D::crossProduct(look_at, up_v);
-
-    QVector3D look_at(X_OFF, Y_OFF, Z_OFF);
+    QVector3D look_at = direction() + camera_pos;
     QVector3D up_v(0, 1, 0);
-    look_at += camera_pos;
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-
-    // why does this not work?
-    glRotatef(yaw_angle, 0, 1, 0);
-    glRotatef(pitch_angle, 0, 0, 1);
 
     glLightfv(GL_LIGHT1, GL_POSITION, light_pos);
 	gluLookAt(
@@ -246,6 +240,7 @@ void Scene::paintGL() {
     glTranslatef(0, 0, -20);
     glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 
+    set_material(smooth_material);
     draw_geometry();
 
 	glFlush();

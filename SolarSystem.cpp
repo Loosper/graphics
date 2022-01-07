@@ -17,6 +17,7 @@ void SolarSystem::advance_movement() {
         return;
 
     earth_rot    += earth_spin_speed   / 10.0;
+    sun_rot      += 5                  / 10.0;
     default_rot  += 3                  / 10.0;
     earth_orbit  += earth_orbit_speed  / 1000.0;
     saturn_orbit += saturn_orbit_speed / 1000.0;
@@ -63,7 +64,6 @@ void SolarSystem::gl_init() {
     load_texture("markus.ppm", markus_tex);
     load_texture("marc.ppm", marc_tex);
 }
-
 void SolarSystem::saturn() {
     glPushMatrix();
         // this is saturn after all
@@ -96,9 +96,11 @@ void SolarSystem::draw_geometry() {
     glPushMatrix();
         glPushMatrix();
             old = set_material(sun_material);
-            glRotatef(earth_rot, 0, 1, 0);
+            glRotatef(sun_rot, 0, 1, 0);
             // TODO: textue on the back???? to light that maybe?
+            glEnable(GL_LIGHT1);
             icosahedron();
+            // glDisable(GL_LIGHT1);
             set_material(old);
         glPopMatrix();
 
@@ -110,14 +112,14 @@ void SolarSystem::draw_geometry() {
             disable_texture();
         glPopMatrix();
         glPushMatrix();
-            glTranslatef(sin(marc_orbit) * 25, 0, cos(marc_orbit) * 25);
+            glTranslatef(sin(marc_orbit) * 35, 0, cos(marc_orbit) * 35);
             glRotatef(default_rot, 0, 1, 0);
             enable_texture(marc_tex);
             sphere();
             disable_texture();
         glPopMatrix();
 
-        glTranslatef(sin(saturn_orbit) * 10, 0, cos(saturn_orbit) * 10);
+        glTranslatef(sin(saturn_orbit) * 18, 0, cos(saturn_orbit) * 18);
         glPushMatrix();
             glScalef(4, 4, 4);
             saturn();
@@ -125,14 +127,23 @@ void SolarSystem::draw_geometry() {
 
         glPushMatrix();
             glRotatef(earth_orbit_tilt_angle, 1, 0, 0);
-            glTranslatef(sin(earth_orbit) * 13, 0, cos(earth_orbit) * 13);
+            glTranslatef(sin(earth_orbit) * 10, 0, cos(earth_orbit) * 10);
             glRotatef(earth_tilt_angle, 0, 0, 1);
             glRotatef(earth_rot, 0, 1, 0);
             earth();
-            glTranslatef(0, 0.95, 0);
-            glScalef(0.3, 0.3, 0.3);
-            glRotatef(180, 0, 1, 0);
-            rocket.draw_geometry();
+
+            int n_rockets = 5;
+            for (int i = 0; i < n_rockets; i++) {
+                glPushMatrix();
+                glRotatef(90, 0, 0, 1);
+                glRotatef((360 / n_rockets) * i, 1, 0, 0);
+                glTranslatef(0, 1, 0);
+                glScalef(0.01, 0.01, 0.01);
+                if (i % 2)
+                    glRotatef(180, 0, 1, 0);
+                rocket.draw_geometry();
+                glPopMatrix();
+            }
         glPopMatrix();
     glPopMatrix();
 }

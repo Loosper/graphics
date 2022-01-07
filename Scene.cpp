@@ -4,7 +4,7 @@
 #include <iostream>
 #include <algorithm>
 #include <cstdlib>
-#include <time.h>
+#include <ctime>
 
 #include <Qt>
 #include <QKeyEvent>

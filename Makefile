@@ -55,11 +55,15 @@ OBJECTS_DIR   = ./
 SOURCES       = main.cpp \
 		Scene.cpp \
 		Drawer.cpp \
-		Rocket.cpp 
+		Rocket.cpp \
+		SolarSystem.cpp \
+		materials.cpp 
 OBJECTS       = main.o \
 		Scene.o \
 		Drawer.o \
-		Rocket.o
+		Rocket.o \
+		SolarSystem.o \
+		materials.o
 DIST          = /usr/lib/qt/mkspecs/features/spec_pre.prf \
 		/usr/lib/qt/mkspecs/common/unix.conf \
 		/usr/lib/qt/mkspecs/common/linux.conf \
@@ -226,10 +230,14 @@ DIST          = /usr/lib/qt/mkspecs/features/spec_pre.prf \
 		/usr/lib/qt/mkspecs/features/lex.prf \
 		scene.pro Scene.h \
 		Drawer.h \
-		Rocket.h main.cpp \
+		Rocket.h \
+		Material.h \
+		SolarSystem.h main.cpp \
 		Scene.cpp \
 		Drawer.cpp \
-		Rocket.cpp
+		Rocket.cpp \
+		SolarSystem.cpp \
+		materials.cpp
 QMAKE_TARGET  = scene
 DESTDIR       = 
 TARGET        = scene
@@ -587,8 +595,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/qt/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents Scene.h Drawer.h Rocket.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp Scene.cpp Drawer.cpp Rocket.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents Scene.h Drawer.h Rocket.h Material.h SolarSystem.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp Scene.cpp Drawer.cpp Rocket.cpp SolarSystem.cpp materials.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -640,19 +648,35 @@ compiler_clean: compiler_moc_predefs_clean
 
 main.o: main.cpp Scene.h \
 		Drawer.h \
+		Material.h \
+		SolarSystem.h \
 		Rocket.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 Scene.o: Scene.cpp Scene.h \
 		Drawer.h \
+		Material.h \
+		SolarSystem.h \
 		Rocket.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Scene.o Scene.cpp
 
-Drawer.o: Drawer.cpp Drawer.h
+Drawer.o: Drawer.cpp Drawer.h \
+		Material.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Drawer.o Drawer.cpp
 
-Rocket.o: Rocket.cpp Rocket.h
+Rocket.o: Rocket.cpp Rocket.h \
+		Drawer.h \
+		Material.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Rocket.o Rocket.cpp
+
+SolarSystem.o: SolarSystem.cpp SolarSystem.h \
+		Drawer.h \
+		Material.h \
+		Rocket.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o SolarSystem.o SolarSystem.cpp
+
+materials.o: materials.cpp Material.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o materials.o materials.cpp
 
 ####### Install
 

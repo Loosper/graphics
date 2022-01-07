@@ -21,8 +21,8 @@
         42/$\aleph$. It has the ultimate icosahedron as a star, orbited by
         jellyfied Saturn and the spirits of the sages of this universe. From
         our home planet, orbiting Saturn, the BOSA (Bosnian Space Agency) is
-        preparing for interstellar colonisation. We observe this solar system
-        as one of the early explorers.
+        preparing for interstellar colonisation. We observe this hedolar system
+        as one of its early explorers.
 
 
     \section{Basic building blocks}
@@ -35,8 +35,9 @@
         For the convex object requirement there is an icosahedron. It is drawn
         by taking the coordinates of its 12 vertices and manually drawing the
         20 faces. Their values are not entirely hard-coded as normals are
-        calculated from the vertices of each face. Extra care for the order of
-        the vertices (counterclockwise) ensures they are always correct.
+        calculated from the vertices of each face. Extra care for the order
+        (counterclockwise) of the vertices ensures the normals are always
+        correct.
 
         Apart from the icosahedron, there is also a cube done manually by a
         different method, which was not used further as using gluQuadric for
@@ -46,8 +47,8 @@
         All of these objects are of unit length (either radius or edge length).
         For correct dimensions they are scaled, rotated and translated instead
         of drawing them "properly". This makes texturing more complicated, as
-        the object is the same shape and size as far as they are concerned. I
-        came up with a workaround to scale and rotate the texture matrix to
+        the object is the same shape and size as far as textures are concerned. I
+        came up with a workaround to scale and translate the texture matrix to
         achieve the desired effect, although it did not end up being necessary.
 
         Material and texture properties are not set for any of them. It is the
@@ -65,16 +66,16 @@
         The star in the hedolar system is an icosahedron, therefore the light
         source of the scene is at its centre. That means that every face has
         the light from directly behind it at all times and is unlit. To work
-        around this, its emissivie light properties are set. However, it still
-        looks wrong, as there is no diffusive or specular light to give it
-        shades so it appears flat (yellow in this case). To combat this problem
-        the scene has a second light with very low intensity at the camera. The
-        reflectance of the icosahedron is set very high relative to the other
-        objects so that the second light lights it brightly while not affecting
-        the other objects much. It was an option to only enable the light while
-        drawing the icosahedron, but having a small highligh on the backs of
-        objects is a nice effect to distinguish them from the darkness of
-        space.
+        around this, emissivie light properties are set. However, they still
+        look wrong, as there is no diffusive or specular light to give faces
+        shades so the star appears flat (yellow in this case). To combat this
+        problem the scene has a second light with very low intensity at the
+        camera. The reflectance of the icosahedron is set very high relative to
+        the other objects so that the second light lights it brightly while not
+        affecting the other objects much. It was an option to only enable the
+        light while drawing the icosahedron, but having a small highlight on
+        the backs of objects is a nice effect to distinguish them from the
+        darkness of space.
 
 
     \section{The rocket}
@@ -88,16 +89,15 @@
         cylinder. The middle booster is longer and has the second stage on top
         (frustum + cylinder) topped with the same cap as the other boosters.
         All three are connected by two struts on each side, made out of
-        elongated cubes.
+        scaled cubes.
 
         All shapes use the same material properties. They have high diffusive
-        reflecatance, somehwat low specular and is not particularly shiny so
-        that it appears smooth but has a slighlty more accented highlight. The
-        middle booster bears the BOSA logo, along with their slogan "Sky is not
-        the limit", as a texture mapped with no distortion or repetition
-        (although the setting is set to mirrored repeat). The different
-        repeating parts (like the boosters) are instanced themselves to
-        simplify the code.
+        reflectance, somewhat low specular and are not particularly shiny so
+        that they appear smooth but have a slightly more accented highlight.
+        The middle booster bears the BOSA logo, along with their slogan "Sky is
+        not the limit", as a texture mapped with no distortion or repetition
+        (although it is set to mirrored repeat). The different repeating parts
+        (like the boosters) are instanced themselves to simplify the code.
 
         Although the rocket is a hierarchical model, it has no movement.
 
@@ -111,12 +111,12 @@
                 \includegraphics[width=0.2\textwidth]{Marcus}
         \end{wrapfigure}
 
-        There are four planets. All are textured generic spheres with smooth
+        There are four planets. All are generic textured spheres with smooth
         lighting. All orbit the star.
 
         The biggest one is textured as Saturn. It has its rings which are drawn
         as two disks with a hole in the middle. One of them is flipped so that
-        it appears the same on both sides (I have culling of backs enables).
+        the rings appear the same on both sides (ther is culling of backs enabled).
         Saturn's axis is tilted by the astronomically correct 26.73 degrees.
         Saturn and its satellites are meant to demonstrate hierarchical
         modelling with animation.
@@ -125,9 +125,9 @@
         essentially the same way, except that its orbit around Saturn is
         independent.
 
-        On the Earth are placed 5 rockets to demonstrate instancing. They are
-        on the equator, where every reasonable space exploring civilisation
-        would place them. They are placed unmodified as described before,
+        On the Earth are placed 5 rockets to demonstrate instancing. They are,
+        where every reasonable space exploring civilisation would put them,
+        on the equator. They are placed unmodified as described before,
         distanced equally apart. Admittedly, their size and placement is
         concerning for the tidal forces and the orbit of the planets. The
         Croatian scientists have repeatedly assured us that this will not be a
@@ -135,10 +135,9 @@
 
         Finally, the two sages have an inner and an outer orbit relative to
         Saturn. They are spheres with the Marc and Marcus textures. They
-        stretch somewhat oddly onto spheres but it looks reasonable.
+        stretch somewhat oddly onto them but it looks reasonable.
 
-
-        All plantes orbit around the star independently in their own orbits.
+        All planets orbit around the star independently in their own orbits.
 
 
         \begin{figure}[h!]
@@ -160,11 +159,11 @@
         mouse and starts tracking it. Moving it rotates the camera in that direction.
 
         Second is by keyboard. the WASD keys move the camera in the direction
-        it is facing. Space/C move it up/down in the y direciton only. Escape
-        releases the mouse if captures and Shift toggles the lighting.
+        it is facing. Space/C move it up/down on the y axis only. Escape
+        releases the mouse if captured and Shift toggles the lighting.
 
         Third is with Qt widgets. There are sliders in both positive and
-        negative directios for most orbital parameters of the system, like
+        negative directions for most orbital parameters of the system, like
         speeds of orbits, speeds of rotation around an axis and angles of
         different axes. There is also a toggle for all movement via a radio
         button to more easily look around the scene.
@@ -174,10 +173,10 @@
         \section{The "I don't get the joke" part}
 
             It should be noted that I am neither Bosnian, nor does the BOSA
-            actually exist. I am, however, from the Balkans which is good engough.
+            actually exist. I am, however, from the Balkans which is good enough.
             This is meant to go with joke from "Space Song" by Dubioza Kolektiv,
             where the BOSA launches a LADA car/rocket into space, hence the
-            acronym. HLADA furthers the pun, as in most eastern slavc languages it
+            acronym. HLADA furthers the pun, as in most eastern slavic languages it
             can mean "cold". Furthermore, Boza (written with a z, however) is a
             popular beverage in the Balkans.
 
